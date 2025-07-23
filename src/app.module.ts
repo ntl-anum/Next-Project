@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RolesModule } from './roles/roles.module';
@@ -14,6 +14,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Supplier } from './suppliers/entities/supplier.entity';
 import { Product } from './products/entities/product.entity';
 import { StockMovement } from './stock-movements/entities/stock-movement.entity';
+import { CheckAdminMiddleware } from './middleware/logger.middleware';
+import { RolesController } from './roles/roles.controller';
 
 @Module({
   imports: [RolesModule, AuthModule, UserModule, ProductsModule, SuppliersModule, StockMovementsModule,
@@ -42,4 +44,10 @@ import { StockMovement } from './stock-movements/entities/stock-movement.entity'
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CheckAdminMiddleware)
+      .forRoutes(RolesController); // Middleware only on RolesController
+  }
+}
